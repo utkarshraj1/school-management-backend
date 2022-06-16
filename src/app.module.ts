@@ -5,6 +5,7 @@ import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { ConfigModule } from './config/config.module';
 import { ConfigService } from './config/config.service';
+import { CredentialsManagementModule } from './credentials-management/credentials-management.module';
 
 @Module({
   imports: [
@@ -18,6 +19,7 @@ import { ConfigService } from './config/config.service';
           useUnifiedTopology: true,
         } as MongooseModuleAsyncOptions),
     }),
+    CredentialsManagementModule,
   ],
   controllers: [AppController],
   providers: [AppService],
