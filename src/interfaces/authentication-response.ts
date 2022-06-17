@@ -1,9 +1,11 @@
 export interface IAuthenticationResponse {
   username: string;
   roles: string[];
+  user_reg_id: string;
   tokenDetails: {
     idToken: string;
     refreshToken: string;
-    validTill: Date;
+    validTill: number;
+    desc: string;
   };
 }
