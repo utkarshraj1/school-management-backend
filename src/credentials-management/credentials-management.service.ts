@@ -104,7 +104,6 @@ export class CredentialsManagementService {
       roles: ['ADMIN'],
       tokenDetails: {
         idToken: jsonWebToken,
-        refreshToken: jsonWebToken,
         validTill: Math.floor(Date.now() / 1000) + 60 * 60,
         desc: 'validTill is measured in seconds',
       },
