@@ -8,7 +8,9 @@ import {
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import * as password from 'password-hash-and-salt';
+import * as jwt from 'jsonwebtoken';
 import { errorHandlingUserCredentialObj } from 'src/constants/error-constants';
+import { JWT_SECRET_KEY } from 'src/constants/constants';
 import { IAuthenticationResponse } from 'src/interfaces/authentication-response';
 import { IStatusMessages } from 'src/interfaces/status-messages';
 import { CreateCredentialsDto } from './dto/create-credentials.dto';
@@ -56,11 +58,7 @@ export class CredentialsManagementService {
               );
               reject('');
             }
-            if (!verified) {
-              resolve(false);
-            } else {
-              resolve(true);
-            }
+            resolve(verified);
           });
         });
     }
@@ -90,14 +88,25 @@ export class CredentialsManagementService {
   async createJWTToken(
     userCred: IUserCredentials,
   ): Promise<IAuthenticationResponse> {
-    // Impementation in progress
+    const jsonWebToken = jwt.sign(
+      {
+        username: userCred.username,
+        roles: ['ADMIN'],
+      },
+      JWT_SECRET_KEY,
+      {
+        expiresIn: '1h',
+      },
+    );
     return {
-      username: '',
-      roles: [''],
+      username: userCred.username,
+      user_reg_id: userCred.user_reg_id,
+      roles: ['ADMIN'],
       tokenDetails: {
-        idToken: '',
-        refreshToken: '',
-        validTill: new Date(),
+        idToken: jsonWebToken,
+        refreshToken: jsonWebToken,
+        validTill: Math.floor(Date.now() / 1000) + 60 * 60,
+        desc: 'validTill is measured in seconds',
       },
     };
   }
@@ -111,14 +120,25 @@ export class CredentialsManagementService {
     credentials: CreateCredentialsDto,
   ): Promise<IStatusMessages> {
     const userCred = await this.findCredential(credentials.username);
+    // Checking if there is any user_id present based on user_reg_id
+    const checkCredBasedOnUserRegId = await this.userCredentialsModel.findOne({
+      user_reg_id: credentials.user_reg_id,
+    });
+    const alreadyPresentErrorMessage = {
+      statusCode: 200,
+      ok: false,
+      message: 'User credentials are already present.',
+    };
+    if (checkCredBasedOnUserRegId) {
+      throw new HttpException(
+        alreadyPresentErrorMessage,
+        alreadyPresentErrorMessage.statusCode,
+      );
+    }
     if (userCred['_id'] !== '') {
       throw new HttpException(
-        {
-          statusCode: 200,
-          ok: false,
-          message: 'User credentials are already present.',
-        },
-        200,
+        alreadyPresentErrorMessage,
+        alreadyPresentErrorMessage.statusCode,
       );
     }
     const transformedPwd = await this.transformPassword(
@@ -171,7 +191,7 @@ export class CredentialsManagementService {
         ok: false,
       });
     }
-    // to return a JWT token
+    // returning an obj with jwt token inside
     return this.createJWTToken(credObjFromDb);
   }
 }
