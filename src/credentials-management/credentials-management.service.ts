@@ -8,6 +8,11 @@ import {
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import * as password from 'password-hash-and-salt';
+import { errorHandlingUserCredentialObj } from 'src/constants/error-constants';
+import { IAuthenticationResponse } from 'src/interfaces/authentication-response';
+import { IStatusMessages } from 'src/interfaces/status-messages';
+import { CreateCredentialsDto } from './dto/create-credentials.dto';
+import { UserCredentialsDto } from './dto/user-credentials.dto';
 import {
   IUserCredentials,
   USER_CREDENTIALS_NAME,
@@ -24,9 +29,9 @@ export class CredentialsManagementService {
    * Encrypts/Decrypts the password
    * @param pwd A password string
    * @param action The action to be taken - Encrypt/Decrypt
-   * @returns A promise with hashed password (incase of encryption) or a success message (incase of decryption)
+   * @returns A string (encryption) or a boolean (decryption) value
    */
-  transformPassword(pwd: string, action: string): Promise<any> {
+  transformPassword(pwd: string, action: string): Promise<string | boolean> {
     switch (action) {
       case 'Encrypt':
         return new Promise((resolve, reject) => {
@@ -64,34 +69,52 @@ export class CredentialsManagementService {
   /**
    * Finds the credential based on the username
    * @param username A username string
-   * @returns A credential obj/empty string inside of a promise
+   * @returns An obj of type IUserCredentials inside of a promise
    */
-  async findCredential(username: string): Promise<any> {
+  async findCredential(username: string): Promise<IUserCredentials> {
     const credential = await this.userCredentialsModel.findOne({
       username: username,
       active_status: true,
     });
     if (!credential) {
-      return '';
+      return errorHandlingUserCredentialObj;
     }
     return credential;
   }
 
-  async createJWTToken(userCred: any): Promise<any> {
+  /**
+   * Creates a JWT token
+   * @param userCred An obj of type IUserCredentials
+   * @returns An object of type IAuthenticationResponse inside a promise
+   */
+  async createJWTToken(
+    userCred: IUserCredentials,
+  ): Promise<IAuthenticationResponse> {
     // Impementation in progress
+    return {
+      username: '',
+      roles: [''],
+      tokenDetails: {
+        idToken: '',
+        refreshToken: '',
+        validTill: new Date(),
+      },
+    };
   }
 
   /**
    * Register new users
-   * @param credentials A credential object with username, user_reg_id and password
-   * @returns An object with status and success/error message inside a promise
+   * @param credentials An obj of type CreateCredentialsDto
+   * @returns An object of type IStatusMessages inside a promise
    */
-  async registerCredentials(credentials: any): Promise<any> {
+  async registerCredentials(
+    credentials: CreateCredentialsDto,
+  ): Promise<IStatusMessages> {
     const userCred = await this.findCredential(credentials.username);
-    if (userCred !== '') {
+    if (userCred['_id'] !== '') {
       throw new HttpException(
         {
-          status: 200,
+          statusCode: 200,
           ok: false,
           message: 'User credentials are already present.',
         },
@@ -109,13 +132,13 @@ export class CredentialsManagementService {
     });
     if (!response._id) {
       throw new InternalServerErrorException({
-        status: 500,
+        statusCode: 500,
         message: 'Something went wrong while inserting user credentials in Db.',
         ok: false,
       });
     }
     return {
-      status: 200,
+      statusCode: 200,
       message: 'User credentials inserted successfully!',
       ok: true,
     };
@@ -123,31 +146,32 @@ export class CredentialsManagementService {
 
   /**
    * Sign in user with credentials
-   * @param userCred An object with username and password
-   * @returns An object with appropriate message/data inside a promise
+   * @param userCred An object of type UserCredentialsDto
+   * @returns An object of type IAuthenticationResponse inside a promise
    */
-  async signInUser(userCred: any): Promise<any> {
+  async signInUser(
+    userCred: UserCredentialsDto,
+  ): Promise<IAuthenticationResponse> {
     const credObjFromDb = await this.findCredential(userCred.username);
-    if (credObjFromDb === '') {
+    if (credObjFromDb['_id'] === '') {
       throw new NotFoundException({
-        status: 404,
+        statusCode: 404,
         ok: false,
         message: 'User does not exists.',
       });
     }
     const isUserAuthentic = await this.transformPassword(
-      credObjFromDb.password + '<divide>' + userCred.password,
+      credObjFromDb['password'] + '<divide>' + userCred.password,
       'Decrypt',
     );
     if (!isUserAuthentic) {
       throw new UnauthorizedException({
-        status: 401,
-        message:
-          'User is either entering wrong password or unauthorized! Please connect with the administrator',
+        statusCode: 401,
+        message: 'Either password is wrong or the user is unauthorized.',
         ok: false,
       });
     }
     // to return a JWT token
-    return { status: 200, message: 'User is authorized', ok: true };
+    return this.createJWTToken(credObjFromDb);
   }
 }

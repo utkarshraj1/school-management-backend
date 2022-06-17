@@ -1,5 +1,15 @@
-import { BadRequestException, Body, Controller, Post } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Post,
+  UsePipes,
+  ValidationPipe,
+} from '@nestjs/common';
+import { IAuthenticationResponse } from 'src/interfaces/authentication-response';
+import { IStatusMessages } from 'src/interfaces/status-messages';
 import { CredentialsManagementService } from './credentials-management.service';
+import { CreateCredentialsDto } from './dto/create-credentials.dto';
+import { UserCredentialsDto } from './dto/user-credentials.dto';
 
 @Controller('/credentials')
 export class CredentialsManagementController {
@@ -9,32 +19,27 @@ export class CredentialsManagementController {
 
   /**
    * Sign in with credentials
-   * @param userCredentials An object with username and password
-   * @returns An appropriate object inside a promise
+   * @param userCredentials An object of type UserCredentialsDto
+   * @returns An object of type IAuthenticationResponse inside a promise
    */
   @Post('/signIn')
-  async signIn(@Body() userCredentials: any): Promise<any> {
+  @UsePipes(ValidationPipe)
+  async signIn(
+    @Body() userCredentials: UserCredentialsDto,
+  ): Promise<IAuthenticationResponse> {
     return this.credentialsManagementService.signInUser(userCredentials);
   }
 
   /**
-   * Adding new user
-   * @param credentials An object with username, password and user_reg_id
-   * @returns A promise with success message
+   * Adds new user
+   * @param credentials An object of type CreateCredentialsDto
+   * @returns An object of type IStatusMessages inside a promise
    */
   @Post('/signUp')
-  async signUp(@Body() credentials: any): Promise<any> {
-    if (
-      !credentials.username ||
-      !credentials.user_reg_id ||
-      !credentials.password
-    ) {
-      throw new BadRequestException({
-        status: 400,
-        message: 'All the required fields must be sent.',
-        ok: false,
-      });
-    }
+  @UsePipes(ValidationPipe)
+  async signUp(
+    @Body() credentials: CreateCredentialsDto,
+  ): Promise<IStatusMessages> {
     return this.credentialsManagementService.registerCredentials(credentials);
   }
 }

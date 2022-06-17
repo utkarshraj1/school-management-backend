@@ -11,7 +11,7 @@ export const userCredentials = new Schema({
 });
 
 export interface IUserCredentials {
-  readonly _id: Types.ObjectId;
+  readonly _id: Types.ObjectId | string;
   username: string;
   user_reg_id: string;
   password: string;
