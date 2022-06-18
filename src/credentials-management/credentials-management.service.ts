@@ -9,10 +9,10 @@ import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import * as password from 'password-hash-and-salt';
 import * as jwt from 'jsonwebtoken';
-import { errorHandlingUserCredentialObj } from 'src/constants/error-constants';
-import { JWT_SECRET_KEY } from 'src/constants/constants';
-import { IAuthenticationResponse } from 'src/interfaces/authentication-response';
-import { IStatusMessages } from 'src/interfaces/status-messages';
+import { errorHandlingUserCredentialObj } from 'src/shared/constants/error-constants';
+import { JWT_SECRET_KEY } from 'src/shared/constants/constants';
+import { IAuthenticationResponse } from 'src/shared/interfaces/authentication-response';
+import { IStatusMessages } from 'src/shared/interfaces/status-messages';
 import { CreateCredentialsDto } from './dto/create-credentials.dto';
 import { UserCredentialsDto } from './dto/user-credentials.dto';
 import {

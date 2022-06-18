@@ -1,5 +1,5 @@
 import { IUserCredentials } from 'src/credentials-management/model/credentials-management.model';
-import { IStatusMessages } from 'src/interfaces/status-messages';
+import { IStatusMessages } from 'src/shared/interfaces/status-messages';
 
 export const errorHandlingUserCredentialObj: IUserCredentials = {
   _id: '',
