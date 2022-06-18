@@ -88,6 +88,7 @@ export class CredentialsManagementService {
   async createJWTToken(
     userCred: IUserCredentials,
   ): Promise<IAuthenticationResponse> {
+    // the role will flow from the user collection, make sure to update it here
     const jsonWebToken = jwt.sign(
       {
         username: userCred.username,
@@ -98,12 +99,24 @@ export class CredentialsManagementService {
         expiresIn: '1h',
       },
     );
+    const refreshToken = jwt.sign(
+      {
+        username: userCred.username,
+        roles: ['ADMIN'],
+      },
+      JWT_SECRET_KEY,
+      {
+        expiresIn: '6h',
+      },
+    );
     return {
       username: userCred.username,
       user_reg_id: userCred.user_reg_id,
+      ok: true,
       roles: ['ADMIN'],
       tokenDetails: {
         idToken: jsonWebToken,
+        refreshToken: refreshToken,
         validTill: Math.floor(Date.now() / 1000) + 60 * 60,
         desc: 'validTill is measured in seconds',
       },
