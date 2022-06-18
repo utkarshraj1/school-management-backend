@@ -6,6 +6,8 @@ import { AppService } from './app.service';
 import { ConfigModule } from './config/config.module';
 import { ConfigService } from './config/config.service';
 import { CredentialsManagementModule } from './credentials-management/credentials-management.module';
+import { UserModule } from './user/user.module';
+import { AcademicsManagementModule } from './academics-management/academics-management.module';
 
 @Module({
   imports: [
@@ -14,12 +16,14 @@ import { CredentialsManagementModule } from './credentials-management/credential
       inject: [ConfigService],
       useFactory: (configService: ConfigService) =>
         ({
-          uri: configService.get('DB_URL'),
+          uri: configService.get('DB_HOST'),
           useNewUrlParser: true,
           useUnifiedTopology: true,
         } as MongooseModuleAsyncOptions),
     }),
     CredentialsManagementModule,
+    UserModule,
+    AcademicsManagementModule,
   ],
   controllers: [AppController],
   providers: [AppService],
