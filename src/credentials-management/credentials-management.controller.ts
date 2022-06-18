@@ -5,8 +5,8 @@ import {
   UsePipes,
   ValidationPipe,
 } from '@nestjs/common';
-import { IAuthenticationResponse } from 'src/interfaces/authentication-response';
-import { IStatusMessages } from 'src/interfaces/status-messages';
+import { IAuthenticationResponse } from 'src/shared/interfaces/authentication-response';
+import { IStatusMessages } from 'src/shared/interfaces/status-messages';
 import { CredentialsManagementService } from './credentials-management.service';
 import { CreateCredentialsDto } from './dto/create-credentials.dto';
 import { UserCredentialsDto } from './dto/user-credentials.dto';

@@ -5,7 +5,7 @@ import {
 } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
-import { dbOperationUnexpectedErrorObj } from 'src/constants/error-constants';
+import { dbOperationUnexpectedErrorObj } from 'src/shared/constants/error-constants';
 import { CreateUserDto } from './dto/create-user.dto';
 import {
   IBackgroundDetails,
