@@ -9,7 +9,10 @@ import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import * as password from 'password-hash-and-salt';
 import * as jwt from 'jsonwebtoken';
-import { errorHandlingUserCredentialObj } from 'src/shared/constants/error-constants';
+import {
+  dbOperationUnexpectedErrorObj,
+  errorHandlingUserCredentialObj,
+} from 'src/shared/constants/error-constants';
 import { JWT_SECRET_KEY } from 'src/shared/constants/constants';
 import { IAuthenticationResponse } from 'src/shared/interfaces/authentication-response';
 import { IStatusMessages } from 'src/shared/interfaces/status-messages';
@@ -19,12 +22,14 @@ import {
   IUserCredentials,
   USER_CREDENTIALS_NAME,
 } from './model/credentials-management.model';
+import { IUsers, SCHEMA_NAMES } from 'src/user/model/user.model';
 
 @Injectable()
 export class CredentialsManagementService {
   constructor(
     @InjectModel(USER_CREDENTIALS_NAME)
     private readonly userCredentialsModel: Model<IUserCredentials>,
+    @InjectModel(SCHEMA_NAMES.USERS) private readonly users: Model<IUsers>,
   ) {}
 
   /**
@@ -81,6 +86,18 @@ export class CredentialsManagementService {
   }
 
   /**
+   * Generates a JWT Sign
+   * @param data An Obj which will be encoded in JWT
+   * @param expireInData The expiry date of jwt sign
+   * @returns A jwt sign
+   */
+  generateJWTSign(data: any, expireInData: string) {
+    return jwt.sign(data, JWT_SECRET_KEY, {
+      expiresIn: expireInData,
+    });
+  }
+
+  /**
    * Creates a JWT token
    * @param userCred An obj of type IUserCredentials
    * @returns An object of type IAuthenticationResponse inside a promise
@@ -89,31 +106,22 @@ export class CredentialsManagementService {
     userCred: IUserCredentials,
   ): Promise<IAuthenticationResponse> {
     // the role will flow from the user collection, make sure to update it here
-    const jsonWebToken = jwt.sign(
-      {
-        username: userCred.username,
-        roles: ['ADMIN'],
-      },
-      JWT_SECRET_KEY,
-      {
-        expiresIn: '1h',
-      },
-    );
-    const refreshToken = jwt.sign(
-      {
-        username: userCred.username,
-        roles: ['ADMIN'],
-      },
-      JWT_SECRET_KEY,
-      {
-        expiresIn: '6h',
-      },
-    );
+    const userData = await this.users.findOne({
+      reg_id: userCred.user_reg_id,
+    });
+    const jwtEncodingData = {
+      username: userCred.username,
+      roles: [userData.role],
+    };
+    const [jsonWebToken, refreshToken] = [
+      this.generateJWTSign(jwtEncodingData, '1h'),
+      this.generateJWTSign(jwtEncodingData, '6h'),
+    ];
     return {
       username: userCred.username,
       user_reg_id: userCred.user_reg_id,
       ok: true,
-      roles: ['ADMIN'],
+      roles: [userData.role],
       tokenDetails: {
         idToken: jsonWebToken,
         refreshToken: refreshToken,
@@ -131,28 +139,24 @@ export class CredentialsManagementService {
   async registerCredentials(
     credentials: CreateCredentialsDto,
   ): Promise<IStatusMessages> {
-    const userCred = await this.findCredential(credentials.username);
-    // Checking if there is any user_id present based on user_reg_id
-    const checkCredBasedOnUserRegId = await this.userCredentialsModel.findOne({
-      user_reg_id: credentials.user_reg_id,
-    });
+    const [userCred, checkCredBasedOnUserRegId] = await Promise.all([
+      this.findCredential(credentials.username),
+      this.userCredentialsModel.findOne({
+        user_reg_id: credentials.user_reg_id,
+      }),
+    ]);
     const alreadyPresentErrorMessage = {
       statusCode: 200,
       ok: false,
       message: 'User credentials are already present.',
     };
-    if (checkCredBasedOnUserRegId) {
+    if (checkCredBasedOnUserRegId || userCred['_id'] !== '') {
       throw new HttpException(
         alreadyPresentErrorMessage,
         alreadyPresentErrorMessage.statusCode,
       );
     }
-    if (userCred['_id'] !== '') {
-      throw new HttpException(
-        alreadyPresentErrorMessage,
-        alreadyPresentErrorMessage.statusCode,
-      );
-    }
+
     const transformedPwd = await this.transformPassword(
       credentials.password,
       'Encrypt',
@@ -163,11 +167,7 @@ export class CredentialsManagementService {
       active_status: true,
     });
     if (!response._id) {
-      throw new InternalServerErrorException({
-        statusCode: 500,
-        message: 'Something went wrong while inserting user credentials in Db.',
-        ok: false,
-      });
+      throw new InternalServerErrorException(dbOperationUnexpectedErrorObj);
     }
     return {
       statusCode: 200,

@@ -1,4 +1,4 @@
-import { Controller } from '@nestjs/common';
+import { Body, Controller, Post } from '@nestjs/common';
 import { AcademicsManagementService } from './academics-management.service';
 
 @Controller('academics')
@@ -7,5 +7,23 @@ export class AcademicsManagementController {
     private readonly academicsManagementService: AcademicsManagementService,
   ) {}
 
-  // Implementations will go here
+  @Post('/addClassDetails')
+  async addClassDetails(@Body() classDetails: any): Promise<any> {
+    return this.academicsManagementService.addClassDetails(classDetails);
+  }
+
+  @Post('/addCourseDetails')
+  async addCourseDetails(@Body() courseDetails: any): Promise<any> {
+    return this.academicsManagementService.addCourseDetails(courseDetails);
+  }
+
+  @Post('/addFaculties')
+  async addFacultyDetails(@Body() facultyDetails: any): Promise<any> {
+    return this.academicsManagementService.addFacultyDetails(facultyDetails);
+  }
+
+  @Post('/createBatch')
+  async createBatchDetails(@Body() batchDetails: any): Promise<any> {
+    return this.academicsManagementService.createBatchDetails(batchDetails);
+  }
 }

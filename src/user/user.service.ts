@@ -98,20 +98,19 @@ export class UserService {
       );
     }
 
-    const identificationObjRet = await this.saveIdentificationDetails({
-      identity_type: userDetails['identity_type'],
-      identity_number: userDetails['identity_number'],
-    });
-    console.log('Added the Identity obj!');
-
-    const backDetailsCreatedObj = await this.saveBackgroundDetails({
-      prev_org: userDetails.prev_org,
-      prev_org_address: userDetails.prev_org_address,
-      prev_role: userDetails.prev_role,
-      prev_role_desc: userDetails.prev_role_desc,
-      prev_org_exit_date: userDetails.prev_org_exit_date,
-    });
-    console.log('Added the background details obj!');
+    const [identificationObjRet, backDetailsCreatedObj] = await Promise.all([
+      this.saveIdentificationDetails({
+        identity_type: userDetails['identity_type'],
+        identity_number: userDetails['identity_number'],
+      }),
+      this.saveBackgroundDetails({
+        prev_org: userDetails.prev_org,
+        prev_org_address: userDetails.prev_org_address,
+        prev_role: userDetails.prev_role,
+        prev_role_desc: userDetails.prev_role_desc,
+        prev_org_exit_date: userDetails.prev_org_exit_date,
+      }),
+    ]);
 
     const objectForUsersCollec = {
       reg_id: userDetails['reg_id'],

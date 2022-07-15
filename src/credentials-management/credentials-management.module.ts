@@ -6,6 +6,7 @@ import {
   userCredentials,
   USER_CREDENTIALS_NAME,
 } from './model/credentials-management.model';
+import { UserModule } from 'src/user/user.module';
 
 @Module({
   imports: [
@@ -15,6 +16,7 @@ import {
         schema: userCredentials,
       },
     ]),
+    UserModule,
   ],
   controllers: [CredentialsManagementController],
   providers: [CredentialsManagementService],

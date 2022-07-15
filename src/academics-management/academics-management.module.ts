@@ -4,7 +4,6 @@ import { AcademicsManagementController } from './academics-management.controller
 import { MongooseModule } from '@nestjs/mongoose';
 import {
   ACAD_MAN,
-  attendance,
   batch,
   classes,
   courses,
@@ -29,10 +28,6 @@ import {
       {
         name: ACAD_MAN.FACULTIES,
         schema: faculties,
-      },
-      {
-        name: ACAD_MAN.ATTENDANCE,
-        schema: attendance,
       },
     ]),
   ],
