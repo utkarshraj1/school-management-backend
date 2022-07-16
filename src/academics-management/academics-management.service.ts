@@ -5,9 +5,13 @@ import {
 } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
-import { dbOperationUnexpectedErrorObj } from 'src/shared/constants/error-constants';
+import {
+  dbOperationUnexpectedErrorObj,
+  dbEntryAlreadyPresentErrorObj,
+} from 'src/shared/constants/error-constants';
 import {
   ACAD_MAN,
+  IAbsenteeList,
   IBatch,
   IClasses,
   ICourses,
@@ -24,7 +28,26 @@ export class AcademicsManagementService {
     @InjectModel(ACAD_MAN.BATCH) private readonly batchModel: Model<IBatch>,
     @InjectModel(ACAD_MAN.FACULTIES)
     private readonly facultyModel: Model<IFaculties>,
+    @InjectModel(ACAD_MAN.ABSENTEELIST)
+    private readonly absenteelistModel: Model<IAbsenteeList>,
   ) {}
+
+  /**
+   * Throws exception based on encountered situation
+   * @param errType A string describing the error
+   */
+  throwNewException(errType: string): void {
+    switch (errType.toLowerCase()) {
+      case 'duplicate':
+        throw new HttpException(
+          dbEntryAlreadyPresentErrorObj,
+          dbEntryAlreadyPresentErrorObj.statusCode,
+        );
+
+      case 'server-error':
+        throw new InternalServerErrorException(dbOperationUnexpectedErrorObj);
+    }
+  }
 
   async addClassDetails(classDetails: any): Promise<any> {
     const classDetailsInCollec = await this.classesModel.findOne({
@@ -32,14 +55,7 @@ export class AcademicsManagementService {
     });
 
     if (classDetailsInCollec) {
-      throw new HttpException(
-        {
-          statusCode: 200,
-          ok: false,
-          message: 'Class is already present.',
-        },
-        200,
-      );
+      this.throwNewException('duplicate');
     }
 
     const classObj = await this.classesModel.create({
@@ -47,7 +63,7 @@ export class AcademicsManagementService {
     });
 
     if (!classObj._id) {
-      throw new InternalServerErrorException(dbOperationUnexpectedErrorObj);
+      this.throwNewException('server-error');
     }
 
     return classObj;
@@ -59,14 +75,7 @@ export class AcademicsManagementService {
     });
 
     if (courseDetailsInCollec) {
-      throw new HttpException(
-        {
-          statusCode: 200,
-          ok: false,
-          message: 'Course is already present.',
-        },
-        200,
-      );
+      this.throwNewException('duplicate');
     }
 
     const courseObj = await this.coursesModel.create({
@@ -74,7 +83,7 @@ export class AcademicsManagementService {
     });
 
     if (!courseObj._id) {
-      throw new InternalServerErrorException(dbOperationUnexpectedErrorObj);
+      this.throwNewException('server-error');
     }
 
     return courseObj;
@@ -86,14 +95,7 @@ export class AcademicsManagementService {
     });
 
     if (facDetailsInCollec) {
-      throw new HttpException(
-        {
-          statusCode: 200,
-          ok: false,
-          message: 'Faculty is already present.',
-        },
-        200,
-      );
+      this.throwNewException('duplicate');
     }
 
     const facultyObj = await this.facultyModel.create({
@@ -101,7 +103,7 @@ export class AcademicsManagementService {
     });
 
     if (!facultyObj._id) {
-      throw new InternalServerErrorException(dbOperationUnexpectedErrorObj);
+      this.throwNewException('server-error');
     }
 
     return facultyObj;
@@ -113,14 +115,7 @@ export class AcademicsManagementService {
     });
 
     if (batchDetailsInCollec) {
-      throw new HttpException(
-        {
-          statusCode: 200,
-          ok: false,
-          message: 'Batch is already present.',
-        },
-        200,
-      );
+      this.throwNewException('duplicate');
     }
 
     const batchObj = await this.batchModel.create({
@@ -128,8 +123,25 @@ export class AcademicsManagementService {
     });
 
     if (!batchObj._id) {
-      throw new InternalServerErrorException(dbOperationUnexpectedErrorObj);
+      this.throwNewException('server-error');
     }
+
+    return batchObj;
+  }
+
+  async addAttendance(attendance: any, batch: string): Promise<any> {
+    const { _id: absenteeId } = await this.absenteelistModel.create({
+      ...attendance,
+    });
+
+    const batchObj = await this.batchModel.updateOne(
+      { batch_id: batch },
+      {
+        $push: {
+          absents: absenteeId,
+        },
+      },
+    );
 
     return batchObj;
   }

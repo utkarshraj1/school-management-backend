@@ -1,4 +1,4 @@
-import { Body, Controller, Post } from '@nestjs/common';
+import { Body, Controller, Post, Query } from '@nestjs/common';
 import { AcademicsManagementService } from './academics-management.service';
 
 @Controller('academics')
@@ -25,5 +25,13 @@ export class AcademicsManagementController {
   @Post('/createBatch')
   async createBatchDetails(@Body() batchDetails: any): Promise<any> {
     return this.academicsManagementService.createBatchDetails(batchDetails);
+  }
+
+  @Post('/attendance')
+  async addAttendance(
+    @Body() attendance: any,
+    @Query('batch') batch: string,
+  ): Promise<any> {
+    return this.academicsManagementService.addAttendance(attendance, batch);
   }
 }

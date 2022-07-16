@@ -5,6 +5,7 @@ export const ACAD_MAN = {
   COURSES: 'courses',
   BATCH: 'batch',
   FACULTIES: 'faculties',
+  ABSENTEELIST: 'absenteelist',
 };
 
 export const classes = new Schema({
@@ -20,6 +21,7 @@ export const courses = new Schema({
 
 export const batch = new Schema({
   year: { type: Number, required: true },
+  batch_id: { type: String, required: true },
   class_id: { type: String, required: true },
   student_id: { type: Array, required: true },
   course_id: { type: Array, required: true },
@@ -31,6 +33,12 @@ export const batch = new Schema({
 export const faculties = new Schema({
   user_reg_id: { type: String, required: true },
   courseOwner: { type: Array, required: true },
+});
+
+export const absenteelist = new Schema({
+  date: { type: String, required: true },
+  student_id: { type: Array, required: true },
+  modified_by: { type: String, required: true },
 });
 
 export interface IClasses {
@@ -49,11 +57,12 @@ export interface ICourses {
 export interface IBatch {
   readonly _id: Types.ObjectId | string;
   year: number;
+  batch_id: string;
   class_id: string;
   student_id: string[];
   course_id: string[];
   faculty_id: string[];
-  absents: Array<{ date: string; student_id: string[] }>;
+  absents: Array<string>;
   leader: string;
 }
 
@@ -61,4 +70,11 @@ export interface IFaculties {
   readonly _id: Types.ObjectId | string;
   user_reg_id: string;
   courseOwner: string[];
+}
+
+export interface IAbsenteeList {
+  readonly _id: Types.ObjectId | string;
+  date: string;
+  student_id: string[];
+  modified_by: string;
 }

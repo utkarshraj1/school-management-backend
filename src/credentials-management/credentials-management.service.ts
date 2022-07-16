@@ -120,6 +120,10 @@ export class CredentialsManagementService {
     return {
       username: userCred.username,
       user_reg_id: userCred.user_reg_id,
+      user_basic_info: {
+        full_name: userData.full_name,
+        gender: userData.gender,
+      },
       ok: true,
       roles: [userData.role],
       tokenDetails: {

@@ -15,3 +15,9 @@ export const dbOperationUnexpectedErrorObj: IStatusMessages = {
   message: 'Something went wrong while inserting document in Database.',
   ok: false,
 };
+
+export const dbEntryAlreadyPresentErrorObj: IStatusMessages = {
+  statusCode: 409,
+  ok: false,
+  message: 'Course is already present.',
+};
