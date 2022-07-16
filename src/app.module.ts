@@ -8,6 +8,7 @@ import { ConfigService } from './config/config.service';
 import { CredentialsManagementModule } from './credentials-management/credentials-management.module';
 import { UserModule } from './user/user.module';
 import { AcademicsManagementModule } from './academics-management/academics-management.module';
+import { AdhocManagementModule } from './adhoc-management/adhoc-management.module';
 
 @Module({
   imports: [
@@ -24,6 +25,7 @@ import { AcademicsManagementModule } from './academics-management/academics-mana
     CredentialsManagementModule,
     UserModule,
     AcademicsManagementModule,
+    AdhocManagementModule,
   ],
   controllers: [AppController],
   providers: [AppService],

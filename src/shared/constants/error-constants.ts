@@ -12,6 +12,12 @@ export const errorHandlingUserCredentialObj: IUserCredentials = {
 
 export const dbOperationUnexpectedErrorObj: IStatusMessages = {
   statusCode: 500,
-  message: 'Something went wrong while inserting user credentials in Db.',
+  message: 'Something went wrong while inserting document in Database.',
   ok: false,
+};
+
+export const dbEntryAlreadyPresentErrorObj: IStatusMessages = {
+  statusCode: 409,
+  ok: false,
+  message: 'Course is already present.',
 };

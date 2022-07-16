@@ -1,11 +1,11 @@
-import { Schema } from 'mongoose';
+import { Schema, Types } from 'mongoose';
 
 export const ACAD_MAN = {
   CLASSES: 'classes',
   COURSES: 'courses',
   BATCH: 'batch',
   FACULTIES: 'faculties',
-  ATTENDANCE: 'attendance',
+  ABSENTEELIST: 'absenteelist',
 };
 
 export const classes = new Schema({
@@ -21,11 +21,12 @@ export const courses = new Schema({
 
 export const batch = new Schema({
   year: { type: Number, required: true },
+  batch_id: { type: String, required: true },
   class_id: { type: String, required: true },
-  students: { type: Array, required: true },
-  courses: { type: Array, required: true },
-  faculties: { type: Array, required: true },
-  attendance: { type: Array, required: true },
+  student_id: { type: Array, required: true },
+  course_id: { type: Array, required: true },
+  faculty_id: { type: Array, required: true },
+  absents: { type: Array, require: true },
   leader: { type: String, required: true },
 });
 
@@ -34,44 +35,46 @@ export const faculties = new Schema({
   courseOwner: { type: Array, required: true },
 });
 
-export const attendance = new Schema({
-  year: { type: String, required: true },
-  class_id: { type: String, required: true },
+export const absenteelist = new Schema({
   date: { type: String, required: true },
-  students: { type: String, required: true },
-  addedBy: { type: String, required: true },
+  student_id: { type: Array, required: true },
+  modified_by: { type: String, required: true },
 });
 
 export interface IClasses {
+  readonly _id: Types.ObjectId | string;
   class_id: string;
   class_name: string;
   class_section: string;
 }
 
 export interface ICourses {
+  readonly _id: Types.ObjectId | string;
   course_id: string;
   course_name: string;
 }
 
 export interface IBatch {
+  readonly _id: Types.ObjectId | string;
   year: number;
+  batch_id: string;
   class_id: string;
-  students: string[];
-  courses: string[];
-  faculties: string[];
-  attendance: string[];
+  student_id: string[];
+  course_id: string[];
+  faculty_id: string[];
+  absents: Array<string>;
   leader: string;
 }
 
 export interface IFaculties {
+  readonly _id: Types.ObjectId | string;
   user_reg_id: string;
   courseOwner: string[];
 }
 
-export interface IAttendance {
-  year: string;
-  class_id: string;
+export interface IAbsenteeList {
+  readonly _id: Types.ObjectId | string;
   date: string;
-  students: string;
-  addedBy: string;
+  student_id: string[];
+  modified_by: string;
 }

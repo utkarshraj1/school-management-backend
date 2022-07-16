@@ -28,5 +28,6 @@ import {
   ],
   controllers: [UserController],
   providers: [UserService],
+  exports: [MongooseModule, UserModule],
 })
 export class UserModule {}

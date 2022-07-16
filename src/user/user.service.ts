@@ -2,6 +2,7 @@ import {
   HttpException,
   Injectable,
   InternalServerErrorException,
+  UnauthorizedException,
 } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
@@ -27,12 +28,16 @@ export class UserService {
   /**
    * Finds user based on user_reg_id
    * @param user_reg_id A string
+   * * @param projection A string, it is optional
    * @returns A document obj containing userDetails inside a promise
    */
-  async findUser(user_reg_id: string): Promise<IUsers | any> {
-    const result = await this.usersModel.findOne({
-      reg_id: user_reg_id,
-    });
+  async findUser(user_reg_id: string, projection?: any): Promise<IUsers | any> {
+    const result = await this.usersModel.findOne(
+      {
+        reg_id: user_reg_id,
+      },
+      projection || {},
+    );
     if (!result) {
       return {
         _id: '',
@@ -90,28 +95,27 @@ export class UserService {
     if (userDataFromDb['_id']) {
       throw new HttpException(
         {
-          statusCode: 200,
+          statusCode: 409,
           ok: false,
           message: 'User is already present.',
         },
-        200,
+        409,
       );
     }
 
-    const identificationObjRet = await this.saveIdentificationDetails({
-      identity_type: userDetails['identity_type'],
-      identity_number: userDetails['identity_number'],
-    });
-    console.log('Added the Identity obj!');
-
-    const backDetailsCreatedObj = await this.saveBackgroundDetails({
-      prev_org: userDetails.prev_org,
-      prev_org_address: userDetails.prev_org_address,
-      prev_role: userDetails.prev_role,
-      prev_role_desc: userDetails.prev_role_desc,
-      prev_org_exit_date: userDetails.prev_org_exit_date,
-    });
-    console.log('Added the background details obj!');
+    const [identificationObjRet, backDetailsCreatedObj] = await Promise.all([
+      this.saveIdentificationDetails({
+        identity_type: userDetails['identity_type'],
+        identity_number: userDetails['identity_number'],
+      }),
+      this.saveBackgroundDetails({
+        prev_org: userDetails.prev_org,
+        prev_org_address: userDetails.prev_org_address,
+        prev_role: userDetails.prev_role,
+        prev_role_desc: userDetails.prev_role_desc,
+        prev_org_exit_date: userDetails.prev_org_exit_date,
+      }),
+    ]);
 
     const objectForUsersCollec = {
       reg_id: userDetails['reg_id'],
@@ -141,5 +145,17 @@ export class UserService {
   async updateUserDetails(userDetails: any): Promise<any> {
     // Will be implemented later
     return Promise.resolve(5);
+  }
+
+  async getUserDetails(reg_id: string): Promise<any> {
+    const userDetails = await this.findUser(reg_id);
+    if (userDetails._id === '') {
+      throw new UnauthorizedException({
+        statusCode: 409,
+        ok: false,
+        message: 'User is not present.',
+      });
+    }
+    return userDetails;
   }
 }

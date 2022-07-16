@@ -3,8 +3,8 @@ import { AcademicsManagementService } from './academics-management.service';
 import { AcademicsManagementController } from './academics-management.controller';
 import { MongooseModule } from '@nestjs/mongoose';
 import {
+  absenteelist,
   ACAD_MAN,
-  attendance,
   batch,
   classes,
   courses,
@@ -31,8 +31,8 @@ import {
         schema: faculties,
       },
       {
-        name: ACAD_MAN.ATTENDANCE,
-        schema: attendance,
+        name: ACAD_MAN.ABSENTEELIST,
+        schema: absenteelist,
       },
     ]),
   ],
